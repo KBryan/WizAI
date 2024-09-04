@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Message {
+pub struct MessageAI {
     pub role: String,
     pub content: String,
 }
@@ -9,7 +9,7 @@ pub struct Message {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatCompletion {
     pub model: String,
-    pub messages: Vec<Message>,
+    pub messages: Vec<MessageAI>,
     pub temperature: f32,
 }
 

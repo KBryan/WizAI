@@ -1,4 +1,4 @@
-use crate::models::general::llm::{Message, ChatCompletion, APIResponse};
+use crate::models::general::llm::{MessageAI, ChatCompletion, APIResponse};
 use dotenv::{dotenv, Error};
 use reqwest::{Client, ClientBuilder, RequestBuilder, Response};
 use std::env;
@@ -12,7 +12,7 @@ struct Ip {
 }
 
 // Call large language model (i.e GPT-4 currently using gpt-4o-2024-05-13)
-pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::error::Error + Send>> {
+pub async fn call_gpt(messages: Vec<MessageAI>) -> Result<String, Box<dyn std::error::Error + Send>> {
     dotenv().ok();
     // Extend API information
     let api_key: String = env::var("OPEN_AI_KEY").expect("OPEN_AI_KEY not found in environment variable");
@@ -69,7 +69,7 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn tests_call_to_openai() {
-        let message = Message {
+        let message = MessageAI {
             role: "user".to_string(),
             content: "Hi there this is a test. What is web3".to_string(),
         };
