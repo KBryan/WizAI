@@ -13,4 +13,3 @@ pub fn convert_user_input_to_goal(_user_request: &str) {
     ///   OUTPUT = "build a website that fetches and stores crypto price data within a supabase setup including a frontend UI to fetch the data."
     println!(OUTPUT)
 }
-

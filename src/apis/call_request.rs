@@ -1,9 +1,9 @@
-use crate::models::general::llm::{MessageAI, ChatCompletion, APIResponse};
+use crate::models::general::llm::{APIResponse, ChatCompletion, MessageAI};
 use dotenv::{dotenv, Error};
-use reqwest::{Client, ClientBuilder, RequestBuilder, Response};
-use std::env;
 use reqwest::header::{HeaderMap, HeaderValue, InvalidHeaderValue};
+use reqwest::{Client, ClientBuilder, RequestBuilder, Response};
 use serde::Deserialize;
+use std::env;
 
 // This `derive` requires the `serde` dependency.
 #[derive(Deserialize)]
@@ -12,11 +12,15 @@ struct Ip {
 }
 
 // Call large language model (i.e GPT-4 currently using gpt-4o-2024-05-13)
-pub async fn call_gpt(messages: Vec<MessageAI>) -> Result<String, Box<dyn std::error::Error + Send>> {
+pub async fn call_gpt(
+    messages: Vec<MessageAI>,
+) -> Result<String, Box<dyn std::error::Error + Send>> {
     dotenv().ok();
     // Extend API information
-    let api_key: String = env::var("OPEN_AI_KEY").expect("OPEN_AI_KEY not found in environment variable");
-    let api_org: String = env::var("OPEN_AI_ORG").expect("OPEN_AI_ORG not found in environment variable");
+    let api_key: String =
+        env::var("OPEN_AI_KEY").expect("OPEN_AI_KEY not found in environment variable");
+    let api_org: String =
+        env::var("OPEN_AI_ORG").expect("OPEN_AI_ORG not found in environment variable");
     // conform our endpoint
     let url: &str = "https://api.openai.com/v1/chat/completions";
     // create headers
@@ -25,15 +29,17 @@ pub async fn call_gpt(messages: Vec<MessageAI>) -> Result<String, Box<dyn std::e
     // create api key header
     headers.insert(
         "authorization",
-        HeaderValue::from_str(&format!("Bearer {}", api_key))
-            .map_err(|e: InvalidHeaderValue| -> Box<dyn std::error::Error + Send> { Box::new(e) })?
+        HeaderValue::from_str(&format!("Bearer {}", api_key)).map_err(
+            |e: InvalidHeaderValue| -> Box<dyn std::error::Error + Send> { Box::new(e) },
+        )?,
     );
 
     // create open ai org header
     headers.insert(
         "OpenAI-Organization",
-        HeaderValue::from_str(api_org.as_str())
-            .map_err(|e: InvalidHeaderValue| -> Box<dyn std::error::Error + Send> { Box::new(e) })?
+        HeaderValue::from_str(api_org.as_str()).map_err(
+            |e: InvalidHeaderValue| -> Box<dyn std::error::Error + Send> { Box::new(e) },
+        )?,
     );
 
     // create client
@@ -48,7 +54,6 @@ pub async fn call_gpt(messages: Vec<MessageAI>) -> Result<String, Box<dyn std::e
         messages,
         temperature: 0.1,
     };
-
 
     // extract api response
     let res: APIResponse = client
