@@ -1,44 +1,75 @@
+```rust
 use actix_cors::Cors;
 use actix_web::{http::header, web, App, HttpServer, Responder, HttpResponse};
 use serde::{Deserialize, Serialize};
+use reqwest::Client as HttpClient;
+use async_trait::async_trait;
 use std::sync::Mutex;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
+use chrono::{DateTime, Utc, TimeZone};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct GameState {
+struct FitnessProgress {
     id: u64,
-    word: String,
-    guessed_letters: Vec<char>,
-    incorrect_attempts: u8,
-    last_move: String,
+    user_id: u64,
+    progress: String,
+    timestamp: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct User {
+    id: u64,
+    username: String,
+    password: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Database {
-    games: HashMap<u64, GameState>,
+    progress_records: HashMap<u64, FitnessProgress>,
+    users: HashMap<u64, User>,
 }
 
 impl Database {
     fn new() -> Self {
         Self {
-            games: HashMap::new(),
+            progress_records: HashMap::new(),
+            users: HashMap::new(),
         }
     }
 
-    fn insert(&mut self, game: GameState) {
-        self.games.insert(game.id, game);
+    // CRUD DATA
+    fn insert_progress(&mut self, progress: FitnessProgress) {
+        self.progress_records.insert(progress.id, progress);
     }
 
-    fn get(&self, id: &u64) -> Option<&GameState> {
-        self.games.get(id)
+    fn get_progress(&self, id: &u64) -> Option<&FitnessProgress> {
+        self.progress_records.get(id)
     }
 
-    fn update(&mut self, game: GameState) {
-        self.games.insert(game.id, game);
+    fn get_all_progress(&self) -> Vec<&FitnessProgress> {
+        self.progress_records.values().collect()
     }
 
+    fn delete_progress(&mut self, id: &u64) {
+        self.progress_records.remove(id);
+    }
+
+    fn update_progress(&mut self, progress: FitnessProgress) {
+        self.progress_records.insert(progress.id, progress);
+    }
+
+    // USER DATA RELATED FUNCTIONS
+    fn insert_user(&mut self, user: User) {
+        self.users.insert(user.id, user);
+    }
+
+    fn get_user_by_name(&self, username: &str) -> Option<&User> {
+        self.users.values().find(|u| u.username == username)
+    }
+
+    // DATABASE SAVING
     fn save_to_file(&self) -> std::io::Result<()> {
         let data: String = serde_json::to_string(&self)?;
         let mut file: fs::File = fs::File::create("database.json")?;
@@ -57,38 +88,68 @@ struct AppState {
     db: Mutex<Database>,
 }
 
-async fn start_game(app_state: web::Data<AppState>, word: web::Json<String>) -> impl Responder {
+async fn create_progress(app_state: web::Data<AppState>, progress: web::Json<FitnessProgress>) -> impl Responder {
     let mut db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
-    let game = GameState {
-        id: rand::random(),
-        word: word.into_inner(),
-        guessed_letters: Vec::new(),
-        incorrect_attempts: 0,
-        last_move: String::new(),
-    };
-    db.insert(game.clone());
+    db.insert_progress(progress.into_inner());
     let _ = db.save_to_file();
-    HttpResponse::Ok().json(game)
+    HttpResponse::Ok().finish()
 }
 
-async fn make_move(app_state: web::Data<AppState>, id: web::Path<u64>, letter: web::Json<char>) -> impl Responder {
-    let mut db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
-    let mut game = match db.get(&id.into_inner()).cloned() {
-        Some(game) => game,
-        None => return HttpResponse::NotFound().finish(),
-    };
-
-    let letter_inner = letter.into_inner();
-    game.last_move = format!("Guessed letter: {}", letter_inner);
-    game.guessed_letters.push(letter_inner);
-
-    if !game.word.contains(letter_inner) {
-        game.incorrect_attempts += 1;
+async fn read_progress(app_state: web::Data<AppState>, id: web::Path<u64>) -> impl Responder {
+    let db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    match db.get_progress(&id.into_inner()) {
+        Some(progress) => HttpResponse::Ok().json(progress),
+        None => HttpResponse::NotFound().finish(),
     }
+}
 
-    db.update(game.clone());
+async fn read_all_progress(app_state: web::Data<AppState>) -> impl Responder {
+    let db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    let progress_records = db.get_all_progress();
+    HttpResponse::Ok().json(progress_records)
+}
+
+async fn update_progress(app_state: web::Data<AppState>, progress: web::Json<FitnessProgress>) -> impl Responder {
+    let mut db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    db.update_progress(progress.into_inner());
     let _ = db.save_to_file();
-    HttpResponse::Ok().json(game)
+    HttpResponse::Ok().finish()
+}
+
+async fn delete_progress(app_state: web::Data<AppState>, id: web::Path<u64>) -> impl Responder {
+    let mut db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    db.delete_progress(&id.into_inner());
+    let _ = db.save_to_file();
+    HttpResponse::Ok().finish()
+}
+
+async fn register(app_state: web::Data<AppState>, user: web::Json<User>) -> impl Responder {
+    let mut db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    db.insert_user(user.into_inner());
+    let _ = db.save_to_file();
+    HttpResponse::Ok().finish()
+}
+
+async fn login(app_state: web::Data<AppState>, user: web::Json<User>) -> impl Responder {
+    let db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    match db.get_user_by_name(&user.username) {
+        Some(stored_user) if stored_user.password == user.password => {
+            HttpResponse::Ok().body("Logged in!")
+        }
+        _ => HttpResponse::BadRequest().body("Invalid username or password"),
+    }
+}
+
+async fn fetch_time() -> Result<DateTime<Utc>, reqwest::Error> {
+    let client = HttpClient::new();
+    let res = client.get("http://worldtimeapi.org/api/timezone/Etc/UTC")
+        .send()
+        .await?
+        .json::<serde_json::Value>()
+        .await?;
+    let datetime_str = res["utc_datetime"].as_str().unwrap();
+    let datetime = DateTime::parse_from_rfc3339(datetime_str).unwrap().with_timezone(&Utc);
+    Ok(datetime)
 }
 
 #[actix_web::main]
@@ -116,10 +177,17 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600),
             )
             .app_data(data.clone())
-            .route("/start", web::post().to(start_game))
-            .route("/move/{id}", web::post().to(make_move))
+            .route("/progress", web::post().to(create_progress))
+            .route("/progress", web::get().to(read_all_progress))
+            .route("/progress", web::put().to(update_progress))
+            .route("/progress/{id}", web::get().to(read_progress))
+            .route("/progress/{id}", web::delete().to(delete_progress))
+            .route("/register", web::post().to(register))
+            .route("/login", web::post().to(login))
+            .route("/time", web::get().to(fetch_time))
     })
     .bind("127.0.0.1:8080")?
     .run()
     .await
 }
+```

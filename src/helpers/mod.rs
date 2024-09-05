@@ -1,2 +1,2 @@
 pub mod command_line;
-mod general;
+pub mod general;

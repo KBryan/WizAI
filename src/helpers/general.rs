@@ -5,11 +5,13 @@ use reqwest::Client;
 use serde::de::DeserializeOwned;
 use std::fs;
 
-const CODE_TEMPLATE_PATH: &str =
+pub const CODE_TEMPLATE_PATH: &str =
     "/Users/kwamebryan/RustroverProjects/DAppWiz/server-template/src/code_template.rs";
-const EXEC_MAIN_PATH: &str =
+
+pub const WEB_SERVER_PROJECT_PATH: &str = "/Users/kwamebryan/RustroverProjects/DAppWiz/server-template/";
+pub const EXEC_MAIN_PATH: &str =
     "/Users/kwamebryan/RustroverProjects/DAppWiz/server-template/src/main.rs";
-const API_SCHEMA_PATH: &str = "/Users/kwamebryan/RustroverProjects/DAppWiz/schemas/api_schema.json";
+pub const API_SCHEMA_PATH: &str = "/Users/kwamebryan/RustroverProjects/DAppWiz/schemas/api_schema.json";
 
 pub fn extend_ai_function(ai_func: fn(&str) -> &'static str, func_input: &str) -> MessageAI {
     let ai_function_str = ai_func(func_input);
@@ -101,10 +103,10 @@ mod tests {
 
     #[test]
     fn tests_extending_ai_function() {
-        let extended_ai_func =
-            extend_ai_function(convert_user_input_to_goal, "Create a Web3 project");
-        dbg!(&extended_ai_func);
-        assert_eq!(extended_ai_func.role, "system".to_string());
+        let extended_msg: MessageAI =
+            extend_ai_function(convert_user_input_to_goal, "dummy variable");
+        dbg!(&extended_msg);
+        assert_eq!(extended_msg.role, "system".to_string());
     }
 
     #[tokio::test]
@@ -118,9 +120,8 @@ mod tests {
             "Defining user requirements",
             convert_user_input_to_goal,
         )
-        .await;
+            .await;
 
         assert!(res.len() > 20);
-        dbg!(res);
     }
 }
