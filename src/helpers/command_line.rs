@@ -2,7 +2,7 @@ use crossterm::{
     style::{Color, ResetColor, SetForegroundColor},
     ExecutableCommand,
 };
-use ethers::prelude::ResponseData::Error;
+
 use std::io::{stdin, stdout};
 
 #[derive(PartialEq, Debug)]

@@ -56,7 +56,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_backend_webserver_code),
             print_backend_webserver_code,
         )
-            .await;
+        .await;
 
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
@@ -74,7 +74,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_improved_webserver_code),
             print_improved_webserver_code,
         )
-            .await;
+        .await;
 
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
@@ -93,7 +93,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_fixed_code),
             print_fixed_code,
         )
-            .await;
+        .await;
 
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
@@ -111,7 +111,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_rest_api_endpoints),
             print_rest_api_endpoints,
         )
-            .await;
+        .await;
 
         ai_response
     }
@@ -326,23 +326,21 @@ mod tests {
         let mut agent: AgentBackendDeveloper = AgentBackendDeveloper::new();
 
         let factsheet_str: &str = r#"
-      {
-        "project_description": "build a website that fetches and tracks fitness progress with timezone information",
-        "project_scope": {
-          "is_crud_required": true,
-          "is_user_login_and_logout": true,
-          "is_external_urls_required": true
-        },
-        "external_urls": [
-          "http://worldtimeapi.org/api/timezone"
-        ],
-        "backend_code": null,
-        "api_endpoint_schema": null
-      }"#;
+          {
+            "project_description": "build a website that returns the currenct time",
+            "project_scope": {
+              "is_crud_required": false,
+              "is_user_login_and_logout": false,
+              "is_external_urls_required": false
+            },
+            "external_urls": [],
+            "backend_code": null,
+            "api_endpoint_schema": null
+          }"#;
 
         let mut factsheet: FactSheet = serde_json::from_str(factsheet_str).unwrap();
-
-        agent.attributes.state = AgentState::Discovery;
+        //dbg!(factsheet);
+        //agent.attributes.state = AgentState::Discovery;
         agent
             .execute(&mut factsheet)
             .await

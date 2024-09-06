@@ -1,5 +1,5 @@
 use crate::models::agent_basic::basic_traits::BasicTraits;
-use crate::models::general::llm::{MessageAI};
+use crate::models::general::llm::MessageAI;
 
 #[derive(Debug, PartialEq)]
 pub enum AgentState {

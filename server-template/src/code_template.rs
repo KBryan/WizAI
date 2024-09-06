@@ -21,6 +21,13 @@ struct Task {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+struct TokenTransferRequest {
+    to: String,
+    amount: u64,
+    contract_address: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct User {
     id: u64,
     username: String,

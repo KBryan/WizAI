@@ -13,37 +13,44 @@ pub const EXEC_MAIN_PATH: &str =
     "/Users/kwamebryan/RustroverProjects/DAppWiz/server-template/src/main.rs";
 pub const API_SCHEMA_PATH: &str = "/Users/kwamebryan/RustroverProjects/DAppWiz/schemas/api_schema.json";
 
+// Extend ai function to encourage specific output
 pub fn extend_ai_function(ai_func: fn(&str) -> &'static str, func_input: &str) -> MessageAI {
-    let ai_function_str = ai_func(func_input);
-    // extend the string to encourage only printing the output
+    let ai_function_str: &str = ai_func(func_input);
+
+    // Extend the string to encourage only printing the output
     let msg: String = format!(
-        "FUNCTION {}
-    INSTRUCTION: You are a function printer. You ONLY print the results of functions.
-    Nothing else. No commentary. Here is the input to the function: {}",
+        "FUNCTION: {}
+  INSTRUCTION: You are a function printer. You ONLY print the results of functions.
+  Nothing else. No commentary. Here is the input to the function: {}.
+  Print out what the function will return.",
         ai_function_str, func_input
     );
 
-    // Return the message
+    // Return message
     MessageAI {
         role: "system".to_string(),
         content: msg,
     }
 }
-//performs call to our llm
+
+// Performs call to LLM GPT
 pub async fn ai_task_request(
     msg_context: String,
     agent_position: &str,
     agent_operation: &str,
     function_pass: for<'a> fn(&'a str) -> &'static str,
 ) -> String {
-    // extend ai function
+    // Extend AI function
     let extended_msg: MessageAI = extend_ai_function(function_pass, &msg_context);
-    // print current status
+
+    // Print current status
     PrintCommand::AICall.print_agent_message(agent_position, agent_operation);
+
     // Get LLM response
     let llm_response_res: Result<String, Box<dyn std::error::Error + Send>> =
         call_gpt(vec![extended_msg.clone()]).await;
-    // handle success
+
+    // Return Success or try again
     match llm_response_res {
         Ok(llm_resp) => llm_resp,
         Err(_) => call_gpt(vec![extended_msg.clone()])

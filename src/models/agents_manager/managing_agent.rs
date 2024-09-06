@@ -55,7 +55,7 @@ impl ManagingAgent {
 
     fn create_agents(&mut self) {
         self.add_agent(Box::new(AgentSolutionArchitect::new()));
-        //self.add_agent(Box::new(AgentBackendDeveloper::new()));
+        self.add_agent(Box::new(AgentBackendDeveloper::new()));
     }
 
     pub async fn execute_project(&mut self) {
@@ -65,8 +65,8 @@ impl ManagingAgent {
             let _agent_res: Result<(), Box<dyn std::error::Error>> =
                 agent.execute(&mut self.factsheet).await;
 
-             let agent_info: &BasicAgent = agent.get_attributes_from_agent();
-             dbg!(agent_info);
+            // let agent_info: &BasicAgent = agent.get_attributes_from_agent();
+            // dbg!(agent_info);
         }
     }
 }

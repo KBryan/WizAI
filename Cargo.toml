@@ -15,5 +15,6 @@ webbrowser = "0.8.9"
 strum = "0.24.1"
 strum_macros = "0.24.3"
 ai_functions = "0.1.1"
-ethers = "2.0"
-bellman = "0.8"
+chrono = "0.4.38"
+
+

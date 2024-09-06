@@ -38,7 +38,7 @@ impl AgentSolutionArchitect {
             get_function_string!(print_project_scope),
             print_project_scope,
         )
-            .await;
+        .await;
 
         factsheet.project_scope = Some(ai_response.clone());
         self.attributes.update_state(AgentState::Finished);
@@ -57,7 +57,7 @@ impl AgentSolutionArchitect {
             get_function_string!(print_site_urls),
             print_site_urls,
         )
-            .await;
+        .await;
 
         factsheet.external_urls = Some(ai_response);
         self.attributes.state = AgentState::UnitTesting;
@@ -86,7 +86,7 @@ impl SpecialFunctions for AgentSolutionArchitect {
                             factsheet,
                             factsheet.project_description.clone(),
                         )
-                            .await;
+                        .await;
                         self.attributes.state = AgentState::UnitTesting;
                     }
                 }

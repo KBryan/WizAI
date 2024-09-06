@@ -1,0 +1,29 @@
+[
+  {
+    "route": "/eth_price",
+    "is_route_dynamic": "false",
+    "method": "get",
+    "request_body": "None",
+    "response": {
+      "price": "number"
+    }
+  },
+  {
+    "route": "/eth_price_binance",
+    "is_route_dynamic": "false",
+    "method": "get",
+    "request_body": "None",
+    "response": {
+      "price": "number"
+    }
+  },
+  {
+    "route": "/eth_price_kraken",
+    "is_route_dynamic": "false",
+    "method": "get",
+    "request_body": "None",
+    "response": {
+      "price": "number"
+    }
+  }
+]
