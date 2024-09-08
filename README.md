@@ -9,7 +9,7 @@
 <img width="984" alt="1" src="https://github.com/user-attachments/assets/9096964f-0132-4f22-ad8f-727c95bd8c80">
 * review the code our A.I. system wrote and remove ```rust and ``` at the beginning and end of the generated file main.rs in the server template folder.
 
-<img width="1007" alt="2" src="https://github.com/user-attachments/assets/e728b69d-7909-44dc-a0e4-f2512c8926c1">
+<img width="1148" alt="5" src="https://github.com/user-attachments/assets/bd4286a4-b885-4866-a772-7c5d4fadf251">
 
 * The expected outcome should look like the following.
 
