@@ -75,10 +75,10 @@
     "response": "string"
   },
   {
-    "route": "/latest_block",
+    "route": "/block_time",
     "is_route_dynamic": "false",
     "method": "get",
     "request_body": "None",
-    "response": "not_provided"
+    "response": "number"
   }
 ]
