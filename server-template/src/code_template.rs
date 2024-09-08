@@ -1,25 +1,26 @@
 use actix_cors::Cors;
-
-use actix_web::{ http::header, web, App, HttpServer, Responder, HttpResponse };
-
-use serde::{ Deserialize, Serialize };
-
-use reqwest::Client as HttpClient;
-
-use async_trait::async_trait;
-
+use actix_web::{http::header, web, App, HttpServer, Responder, HttpResponse};
+use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
+use ethers::prelude::*;
+use std::convert::TryFrom;
 
+// Ethereum provider URL and private key placeholder
+const INFURA_URL: &str = "https://mainnet.infura.io/v3/YOUR_PROJECT_ID";
+const PRIVATE_KEY: &str = "YOUR_PRIVATE_KEY";
+
+// Task Struct
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Task {
     id: u64,
     name: String,
-    completed: bool
+    completed: bool,
 }
 
+// TokenTransferRequest Struct
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct TokenTransferRequest {
     to: String,
@@ -27,28 +28,29 @@ struct TokenTransferRequest {
     contract_address: String,
 }
 
+// User Struct
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct User {
     id: u64,
     username: String,
-    password: String
+    password: String,
 }
 
+// Database Struct
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Database {
     tasks: HashMap<u64, Task>,
-    users: HashMap<u64, User>
+    users: HashMap<u64, User>,
 }
 
 impl Database {
     fn new() -> Self {
         Self {
             tasks: HashMap::new(),
-            users: HashMap::new()
+            users: HashMap::new(),
         }
     }
 
-    // CRUD DATA
     fn insert(&mut self, task: Task) {
         self.tasks.insert(task.id, task);
     }
@@ -69,7 +71,6 @@ impl Database {
         self.tasks.insert(task.id, task);
     }
 
-    // USER DATA RELATED FUNCTIONS
     fn insert_user(&mut self, user: User) {
         self.users.insert(user.id, user);
     }
@@ -78,87 +79,124 @@ impl Database {
         self.users.values().find(|u| u.username == username)
     }
 
-    // DATABASE SAVING
     fn save_to_file(&self) -> std::io::Result<()> {
-        let data: String = serde_json::to_string(&self)?;
-        let mut file: fs::File = fs::File::create("database.json")?;
+        let data = serde_json::to_string(&self)?;
+        let mut file = fs::File::create("database.json")?;
         file.write_all(data.as_bytes())?;
         Ok(())
     }
 
     fn load_from_file() -> std::io::Result<Self> {
-        let file_content: String = fs::read_to_string("database.json")?;
+        let file_content = fs::read_to_string("database.json")?;
         let db: Database = serde_json::from_str(&file_content)?;
         Ok(db)
     }
 }
 
 struct AppState {
-    db: Mutex<Database>
+    db: Mutex<Database>,
 }
 
+// Ethereum Token Transfer Logic
+async fn send_token(req: TokenTransferRequest) -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize Ethereum provider
+    let provider = Provider::<Http>::try_from(INFURA_URL)?;
+    let wallet: LocalWallet = PRIVATE_KEY.parse()?;
+    let client = SignerMiddleware::new(provider, wallet);
+
+    // Parse Ethereum address and token amount
+    let to: Address = req.to.parse()?;
+    let amount = U256::from(req.amount);
+
+    // Create and send the transaction
+    let tx = TransactionRequest::new()
+        .to(to)
+        .value(amount)
+        .from(client.address());
+
+    let pending_tx = client.send_transaction(tx, None).await?;
+    println!("Transaction hash: {:?}", pending_tx);
+
+    // Await confirmation
+    let receipt = pending_tx.await?;
+    println!("Transaction receipt: {:?}", receipt);
+
+    Ok(())
+}
+
+// Actix-Web Handlers
+
 async fn create_task(app_state: web::Data<AppState>, task: web::Json<Task>) -> impl Responder {
-    let mut db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    let mut db = app_state.db.lock().unwrap();
     db.insert(task.into_inner());
     let _ = db.save_to_file();
     HttpResponse::Ok().finish()
 }
 
 async fn read_task(app_state: web::Data<AppState>, id: web::Path<u64>) -> impl Responder {
-    let db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    let db = app_state.db.lock().unwrap();
     match db.get(&id.into_inner()) {
         Some(task) => HttpResponse::Ok().json(task),
-        None => HttpResponse::NotFound().finish()
+        None => HttpResponse::NotFound().finish(),
     }
 }
 
 async fn read_all_tasks(app_state: web::Data<AppState>) -> impl Responder {
-    let db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    let db = app_state.db.lock().unwrap();
     let tasks = db.get_all();
     HttpResponse::Ok().json(tasks)
 }
 
 async fn update_task(app_state: web::Data<AppState>, task: web::Json<Task>) -> impl Responder {
-    let mut db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    let mut db = app_state.db.lock().unwrap();
     db.update(task.into_inner());
     let _ = db.save_to_file();
     HttpResponse::Ok().finish()
 }
 
 async fn delete_task(app_state: web::Data<AppState>, id: web::Path<u64>) -> impl Responder {
-    let mut db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    let mut db = app_state.db.lock().unwrap();
     db.delete(&id.into_inner());
     let _ = db.save_to_file();
     HttpResponse::Ok().finish()
 }
 
 async fn register(app_state: web::Data<AppState>, user: web::Json<User>) -> impl Responder {
-    let mut db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    let mut db = app_state.db.lock().unwrap();
     db.insert_user(user.into_inner());
     let _ = db.save_to_file();
     HttpResponse::Ok().finish()
 }
 
 async fn login(app_state: web::Data<AppState>, user: web::Json<User>) -> impl Responder {
-    let db: std::sync::MutexGuard<Database> = app_state.db.lock().unwrap();
+    let db = app_state.db.lock().unwrap();
     match db.get_user_by_name(&user.username) {
         Some(stored_user) if stored_user.password == user.password => {
             HttpResponse::Ok().body("Logged in!")
-        },
-        _ => HttpResponse::BadRequest().body("Invalid username or password")
+        }
+        _ => HttpResponse::BadRequest().body("Invalid username or password"),
+    }
+}
+
+// Token Transfer Handler
+async fn token_transfer(
+    transfer_request: web::Json<TokenTransferRequest>,
+) -> impl Responder {
+    match send_token(transfer_request.into_inner()).await {
+        Ok(_) => HttpResponse::Ok().body("Token transfer successful!"),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Error: {:?}", e)),
     }
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
-    let db: Database = match Database::load_from_file() {
+    let db = match Database::load_from_file() {
         Ok(db) => db,
-        Err(_) => Database::new()
+        Err(_) => Database::new(),
     };
 
-    let data: web::Data<AppState> = web::Data::new(AppState {
-        db: Mutex::new(db)
+    let data = web::Data::new(AppState {
+        db: Mutex::new(db),
     });
 
     HttpServer::new(move || {
@@ -172,7 +210,7 @@ async fn main() -> std::io::Result<()> {
                     .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
                     .allowed_header(header::CONTENT_TYPE)
                     .supports_credentials()
-                    .max_age(3600)
+                    .max_age(3600),
             )
             .app_data(data.clone())
             .route("/task", web::post().to(create_task))
@@ -182,8 +220,9 @@ async fn main() -> std::io::Result<()> {
             .route("/task/{id}", web::delete().to(delete_task))
             .route("/register", web::post().to(register))
             .route("/login", web::post().to(login))
+            .route("/token_transfer", web::post().to(token_transfer))  // New Token Transfer Route
     })
-    .bind("127.0.0.1:8080")?
-    .run()
-    .await
+        .bind("127.0.0.1:8080")?
+        .run()
+        .await
 }
