@@ -11,6 +11,10 @@
 
 <img width="1148" alt="5" src="https://github.com/user-attachments/assets/bd4286a4-b885-4866-a772-7c5d4fadf251">
 
+* change into the server-template folder
+* cargo run
+* view the api_schema.json file for the created endpoints
+* open your browser and navigate to your localhost:8080 and the endpoint created i.e /block_time
 * The expected outcome should look like the following.
 
 <img width="899" alt="3" src="https://github.com/user-attachments/assets/440ae950-dec6-4d56-b3bc-eefb1507a1a8">
