@@ -18,3 +18,6 @@
 * The expected outcome should look like the following.
 
 <img width="899" alt="3" src="https://github.com/user-attachments/assets/440ae950-dec6-4d56-b3bc-eefb1507a1a8">
+
+## YouTube Video
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](https://www.youtube.com/watch?v=5Ok03ofoTeU)
