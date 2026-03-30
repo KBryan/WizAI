@@ -34,7 +34,7 @@ pub fn LeadModal(lead: Lead, on_close: Callback<()>) -> impl IntoView {
 
                         <div>
                             <h3 class="text-sm font-medium text-neutral-500 mb-2">Status</h3>
-                            <span class={format!("badge {}", match lead.score >= 8 { true => "badge-hot", false if lead.score >= 5 => "badge-warm" => "badge-cold" })}>
+                            <span class={format!("badge {}", if lead.score >= 8 { "badge-hot" } else if lead.score >= 5 { "badge-warm" } else { "badge-cold" })}>
                                 {format!("{:?}", lead.status)} - Score: {lead.score}
                             </span>
                         </div>

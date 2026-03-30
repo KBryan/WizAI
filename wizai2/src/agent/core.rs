@@ -37,6 +37,7 @@ pub enum AgentRole {
     RealEstateResearcher, // Real estate market analysis specialist
     LeadIntakeSpecialist,      // Captures and qualifies leads
     ClientCommunicationAssistant, // Drafts client communications
+    ResearchLead,    // Manager-level research lead
     VP,              // Vice President
     Director,
     Manager,
@@ -59,6 +60,7 @@ impl AgentRole {
             AgentRole::RealEstateResearcher => "Real Estate Researcher",
             AgentRole::LeadIntakeSpecialist => "Lead Intake Specialist",
             AgentRole::ClientCommunicationAssistant => "Client Communication Assistant",
+            AgentRole::ResearchLead => "Research Lead",
             AgentRole::VP => "VP",
             AgentRole::Director => "Director",
             AgentRole::Manager => "Manager",
@@ -73,13 +75,16 @@ impl AgentRole {
         match (self, other) {
             (User, _) => true,
             (CEO, _) | (CTO, _) | (CFO, _) | (ChiefAI, _) | (ChiefProduct, _) => {
-                matches!(other, VP | Director | Manager | Lead | Specialist | Intern | OpenSpecExecutor | SoftwareDeveloper | RealEstateResearcher)
+                matches!(other, VP | Director | Manager | Lead | Specialist | Intern | OpenSpecExecutor | SoftwareDeveloper | RealEstateResearcher | ResearchLead)
             }
             (VP, _) | (Director, _) => {
-                matches!(other, Manager | Lead | Specialist | Intern | SoftwareDeveloper | RealEstateResearcher)
+                matches!(other, Manager | Lead | Specialist | Intern | SoftwareDeveloper | RealEstateResearcher | ResearchLead)
             }
             (Manager, _) => {
                 matches!(other, Lead | Specialist | Intern | SoftwareDeveloper | RealEstateResearcher)
+            }
+            (ResearchLead, _) => {
+                matches!(other, Specialist | Intern | RealEstateResearcher)
             }
             (Lead, _) => {
                 matches!(other, Specialist | Intern | SoftwareDeveloper | RealEstateResearcher)

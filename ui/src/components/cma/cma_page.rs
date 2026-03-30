@@ -2,6 +2,8 @@ use leptos::*;
 use crate::api::cma::{self, CreateCmaRequest, CmaReport, ComparablesQuery};
 use crate::components::common::show_toast;
 use crate::api::pdf_export::download_cma_pdf;
+use crate::components::cma::comparables::ComparablesList;
+use crate::components::cma::price_chart::PriceRecommendation;
 
 #[component]
 pub fn CmaPage() -> impl IntoView {
@@ -161,11 +163,12 @@ pub fn CmaPage() -> impl IntoView {
                     disabled=is_generating() || address().trim().is_empty()
                     class="btn-primary"
                 >
-                    {move || if is_generating() { 
-                        html! { <span class="flex items-center"><span class="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Generating...</span> }
-                    } else { 
-                        "Generate CMA" 
-                    }}
+                    <Show when=is_generating() fallback=|_| "Generate CMA">
+                        <span class="flex items-center">
+                            <span class="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            Generating...
+                        </span>
+                    </Show>
                 </button>
             </div>
 

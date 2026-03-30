@@ -197,15 +197,22 @@ impl VeniceClient {
             }
             
             let mut stream = response.bytes_stream();
+            let mut buffer = String::new();
             
             while let Some(chunk) = stream.next().await {
                 match chunk {
                     Ok(bytes) => {
                         let text = String::from_utf8_lossy(&bytes);
+                        buffer.push_str(&text);
                         
-                        for line in text.lines() {
-                            if line.starts_with("data: ") {
-                                let data = &line[6..];
+                        // Process complete lines from buffer
+                        while let Some(newline_pos) = buffer.find('\n') {
+                            let line = buffer[..newline_pos].to_string();
+                            buffer = buffer[newline_pos + 1..].to_string();
+                            
+                            let trimmed = line.trim();
+                            if trimmed.starts_with("data: ") {
+                                let data = &trimmed[6..];
                                 
                                 if data == "[DONE]" {
                                     continue;
@@ -222,8 +229,7 @@ impl VeniceClient {
                                         }
                                     }
                                     Err(e) => {
-                                        error!("Failed to parse stream chunk: {}", e);
-                                        // Don't panic on parse errors, but log them prominently
+                                        error!("Failed to parse stream chunk '{}...': {}", &data[..data.len().min(50)], e);
                                     }
                                 }
                             }

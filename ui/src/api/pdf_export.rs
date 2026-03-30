@@ -1,6 +1,7 @@
 use crate::api::cma::CmaReport;
+use js_sys::Array;
 use wasm_bindgen::prelude::*;
-use web_sys::Blob;
+use web_sys::{window, Blob, Document, Element, Url};
 
 #[wasm_bindgen]
 pub fn export_cma_to_pdf(cma_json: &str) -> Result<Vec<u8>, JsValue> {
@@ -8,22 +9,21 @@ pub fn export_cma_to_pdf(cma_json: &str) -> Result<Vec<u8>, JsValue> {
         .map_err(|e| JsValue::from_str(&format!("JSON parse error: {}", e)))?;
 
     let html = generate_cma_html(&cma);
-
     Ok(html.into_bytes())
 }
 
 fn generate_cma_html(cma: &CmaReport) -> String {
     let price_low = cma
         .price_recommendation_low
-        .map(|p| format!("${:,.0}", p))
+        .map(|p| format!("${:.0}", p))
         .unwrap_or_else(|| "N/A".to_string());
     let price_mid = cma
         .price_recommendation_mid
-        .map(|p| format!("${:,.0}", p))
+        .map(|p| format!("${:.0}", p))
         .unwrap_or_else(|| "N/A".to_string());
     let price_high = cma
         .price_recommendation_high
-        .map(|p| format!("${:,.0}", p))
+        .map(|p| format!("${:.0}", p))
         .unwrap_or_else(|| "N/A".to_string());
     let confidence = format!("{}%", cma.confidence);
     let dom = cma
@@ -34,109 +34,86 @@ fn generate_cma_html(cma: &CmaReport) -> String {
         .list_to_sale_ratio
         .map(|r| format!("{:.1}%", r))
         .unwrap_or_else(|| "N/A".to_string());
+    let price_per_sqft = cma
+        .price_per_sqft
+        .map(|p| format!("${:.2}/sqft", p))
+        .unwrap_or_else(|| "N/A".to_string());
+    let market_conditions = if cma.market_hot { "Hot" } else { "Normal" };
 
     format!(
-        r#"
-<!DOCTYPE html>
+        r#"<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>CMA Report - {}</title>
+    <title>CMA Report - {subject_address}</title>
     <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{ font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 12px; line-height: 1.6; color: #333; padding: 40px; }}
-        .header {{ text-align: center; margin-bottom: 40px; border-bottom: 3px solid #2563eb; padding-bottom: 20px; }}
-        .header h1 {{ font-size: 28px; color: #2563eb; margin-bottom: 10px; }}
-        .header p {{ color: #666; font-size: 14px; }}
-        .section {{ margin-bottom: 30px; }}
-        .section h2 {{ font-size: 18px; color: #2563eb; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 15px; }}
-        .property-info {{ background: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 20px; }}
-        .property-info h3 {{ font-size: 20px; margin-bottom: 10px; }}
-        .property-info p {{ color: #666; }}
-        .price-box {{ background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); color: white; padding: 25px; border-radius: 12px; text-align: center; margin-bottom: 20px; }}
-        .price-box .label {{ font-size: 12px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }}
-        .price-box .price {{ font-size: 36px; font-weight: bold; margin: 10px 0; }}
-        .price-box .range {{ font-size: 14px; opacity: 0.9; }}
-        .confidence {{ display: inline-block; background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }}
-        .metrics-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }}
-        .metric {{ background: #f9fafb; padding: 15px; border-radius: 8px; }}
-        .metric .label {{ font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }}
-        .metric .value {{ font-size: 20px; font-weight: 600; color: #111827; }}
-        .comparables table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
-        .comparables th {{ background: #2563eb; color: white; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; }}
-        .comparables td {{ padding: 12px; border-bottom: 1px solid #e5e7eb; }}
-        .comparables tr:hover {{ background: #f9fafb; }}
-        .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #9ca3af; text-align: center; }}
-        @media print {{ body {{ padding: 20px; }} }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 40px; color: #333; }}
+        .header {{ text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2563eb; padding-bottom: 20px; }}
+        .header h1 {{ color: #2563eb; margin: 0; }}
+        .header p {{ color: #666; margin: 5px 0; }}
+        .price-range {{ background: #eff6ff; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }}
+        .price-range h2 {{ margin: 0 0 10px; color: #1e40af; }}
+        .price-range .prices {{ font-size: 24px; font-weight: bold; color: #2563eb; }}
+        .metrics {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }}
+        .metric {{ background: #f9fafb; padding: 15px; border-radius: 6px; }}
+        .metric .label {{ font-size: 12px; color: #6b7280; text-transform: uppercase; }}
+        .metric .value {{ font-size: 18px; font-weight: 600; color: #111827; }}
+        .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af; text-align: center; }}
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Comparative Market Analysis</h1>
-        <p>Generated by WizAI Agent Dashboard</p>
+        <p><strong>{subject_address}</strong></p>
+        <p>Property Type: {property_type}</p>
+        <p>MLS#: {mls_number}</p>
+        <p>Report Date: {date}</p>
     </div>
     
-    <div class="property-info">
-        <h3>{subject_address}</h3>
-        <p><strong>Property Type:</strong> {property_type}</p>
-        <p><strong>MLS#:</strong> {mls_number}</p>
-        <p><strong>Report Date:</strong> {date}</p>
+    <div class="price-range">
+        <h2>Recommended Price Range</h2>
+        <div class="prices">{low} - {high}</div>
+        <p style="margin-top: 10px;">Mid Point: <strong>{mid}</strong></p>
+        <p>Confidence: {conf}</p>
     </div>
     
-    <div class="price-box">
-        <div class="label">Recommended Listing Price</div>
-        <div class="price">{price_mid}</div>
-        <div class="range">Range: {price_low} - {price_high}</div>
-    </div>
-    
-    <div style="text-align: center; margin-bottom: 30px;">
-        <span class="confidence">Confidence: {confidence}</span>
-    </div>
-    
-    <div class="section">
-        <h2>Market Conditions</h2>
-        <div class="metrics-grid">
-            <div class="metric">
-                <div class="label">Avg Days on Market</div>
-                <div class="value">{dom}</div>
-            </div>
-            <div class="metric">
-                <div class="label">List-to-Sale Ratio</div>
-                <div class="value">{ltsr}</div>
-            </div>
-            <div class="metric">
-                <div class="label">Price per Sq Ft</div>
-                <div class="value">{price_per_sqft}</div>
-            </div>
-            <div class="metric">
-                <div class="label">Market Conditions</div>
-                <div class="value">{market_conditions}</div>
-            </div>
+    <div class="metrics">
+        <div class="metric">
+            <div class="label">Avg Days on Market</div>
+            <div class="value">{dom}</div>
+        </div>
+        <div class="metric">
+            <div class="label">List-to-Sale Ratio</div>
+            <div class="value">{ltsr}</div>
+        </div>
+        <div class="metric">
+            <div class="label">Price per Sq Ft</div>
+            <div class="value">{price_per_sqft}</div>
+        </div>
+        <div class="metric">
+            <div class="label">Market Conditions</div>
+            <div class="value">{market_conditions}</div>
         </div>
     </div>
     
     <div class="footer">
         <p>This CMA is provided for informational purposes only and should not be considered as financial or legal advice.</p>
-        <p>Generated by WizAI Agent Dashboard | {date}</p>
+        <p>Generated by WizAI Agent Dashboard</p>
     </div>
 </body>
-</html>
-"#,
+</html>"#,
         subject_address = cma.subject_address,
         property_type = cma.property_type,
         mls_number = cma.subject_mls_number.as_deref().unwrap_or("N/A"),
         date = chrono::Utc::now().format("%B %d, %Y"),
-        price_low = price_low,
-        price_mid = price_mid,
-        price_high = price_high,
-        confidence = confidence,
+        low = price_low,
+        mid = price_mid,
+        high = price_high,
+        conf = confidence,
         dom = dom,
         ltsr = ltsr,
-        price_per_sqft = cma
-            .price_per_sqft
-            .map(|p| format!("${:.0}", p))
-            .unwrap_or_else(|| "N/A".to_string()),
-        market_conditions = cma.market_conditions.as_deref().unwrap_or("N/A")
+        price_per_sqft = price_per_sqft,
+        market_conditions = market_conditions,
     )
 }
 
@@ -144,39 +121,28 @@ fn generate_cma_html(cma: &CmaReport) -> String {
 pub fn download_cma_pdf(cma_json: &str, filename: &str) -> Result<(), JsValue> {
     let html_bytes = export_cma_to_pdf(cma_json)?;
 
-    let blob = Blob::new_with_u8_array_sequence(&js_sys::Array::from_iter([
-        web_sys::BlobPropertyBag::new().type_("text/html"),
-        &html_bytes.into(),
-    ]))
-    .map_err(|e| JsValue::from_str(&format!("Blob error: {:?}", e)))?;
+    let array = Array::new_with_length(html_bytes.len() as u32);
+    for (i, byte) in html_bytes.iter().enumerate() {
+        array.set(i as u32, JsValue::from_f64(*byte as f64));
+    }
 
-    let url = web_sys::Url::create_object_url_with_blob(&blob)
-        .map_err(|e| JsValue::from_str(&format!("URL error: {:?}", e)))?;
+    let blob = Blob::new_with_array_buffer_view(&array)?;
+    let url = Url::create_object_url_with_blob(&blob)?;
 
-    let window = web_sys::window().ok_or_else(|| JsValue::from_str("No window"))?;
-
-    let document = window
+    let doc = window()
+        .ok_or_else(|| JsValue::from_str("No window"))?
         .document()
         .ok_or_else(|| JsValue::from_str("No document"))?;
 
-    let anchor = document
-        .create_element("a")
-        .map_err(|e| JsValue::from_str(&format!("Element error: {:?}", e)))?;
-
+    let anchor: Element = doc.create_element("a")?;
     anchor.set_attribute("href", &url)?;
     anchor.set_attribute("download", filename)?;
-    anchor.set_attribute("style", "display: none;")?;
 
-    let body = document
-        .body()
-        .ok_or_else(|| JsValue::from_str("No body"))?;
+    let body = doc.body().ok_or_else(|| JsValue::from_str("No body"))?;
     body.append_child(&anchor)?;
-
-    anchor.click();
-
+    anchor.dyn_ref::<web_sys::HtmlElement>()?.click();
     body.remove_child(&anchor)?;
 
-    web_sys::Url::revoke_object_url(&url)?;
-
+    Url::revoke_object_url(&url)?;
     Ok(())
 }

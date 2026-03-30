@@ -2,6 +2,7 @@ use crate::api::client::ApiClient;
 use crate::api::types::*;
 use crate::components::common::*;
 use crate::state::ws::{use_ws_state, WebSocketMessage};
+use leptos::*;
 
 #[component]
 pub fn CopilotPanel(on_close: Callback<()>) -> impl IntoView {

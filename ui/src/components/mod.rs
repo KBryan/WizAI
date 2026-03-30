@@ -1,9 +1,2 @@
-pub mod shell;
-pub mod sidebar;
-pub mod header;
-pub mod copilot;
-pub mod leads;
-pub mod cma;
-pub mod market;
-pub mod comms;
-pub mod common;
+// Components are now defined in app.rs for simplicity
+// Future iterations can extract them into separate modules

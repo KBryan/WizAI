@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavaScriptLibraryMappings">
+    <excludedPredefinedLibrary name="WizAI/repliers-mcp-server/node_modules" />
+    <excludedPredefinedLibrary name="WizAI/web-games-showcase-2026/node_modules" />
+  </component>
+</project>

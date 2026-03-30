@@ -1,5 +1,4 @@
-pub mod types;
+pub mod card;
+pub mod stats;
+pub mod modal;
 pub mod leads_page;
-pub mod cma_page;
-pub mod market_page;
-pub mod comms_page;

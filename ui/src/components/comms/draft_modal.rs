@@ -57,7 +57,7 @@ pub fn DraftModal(draft: DraftData, on_close: Callback<()>) -> impl IntoView {
     Date: March 15, 2026
     Time: 2:00 PM
 
-    Please let me know if this time works for you, or if you'd like to reschedule.
+    Please let me know if this time works for you, or if you would like to reschedule.
 
     Best regards,
     Your Agent

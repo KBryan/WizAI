@@ -1,11 +1,15 @@
 //! Integration tests for Repliers MCP
 
 use std::collections::HashMap;
+use spree_agent::agent::roles::real_estate_researcher::{
+    ResearchRequest, PropertyType, PriceRange, FocusArea, OutputFormat
+};
+use spree_agent::mcp::protocol::MCPContent;
 
 #[tokio::test]
 async fn test_repliers_mcp_connection() {
     // Import MCP client
-    use spree::mcp::MCPClient;
+    use spree_agent::mcp::MCPClient;
     
     println!("Testing Repliers MCP Connection...");
     
@@ -58,7 +62,7 @@ async fn test_repliers_mcp_connection() {
 
 #[tokio::test]
 async fn test_durham_region_search() {
-    use spree::mcp::MCPClient;
+    use spree_agent::mcp::MCPClient;
     
     println!("\nTesting Durham Region Search...");
     
@@ -94,7 +98,7 @@ async fn test_durham_region_search() {
             // Extract and display results
             let text_content: Vec<String> = result.content.iter()
                 .filter_map(|c| match c {
-                    spree::mcp::protocol::MCPContent::Text { text } => Some(text.clone()),
+                    MCPContent::Text { text } => Some(text.clone()),
                     _ => None,
                 })
                 .collect();
@@ -125,7 +129,7 @@ async fn test_durham_region_search() {
 
 #[tokio::test]
 async fn test_real_estate_researcher_role() {
-    use spree::agent::roles::real_estate_researcher::*;
+    use spree_agent::agent::roles::real_estate_researcher::*;
     
     println!("\nTesting Real Estate Researcher Role...");
     

@@ -1,5 +1,5 @@
 use leptos::*;
-use leptos_router::use_navigate;
+use leptos_router::{use_location, use_navigate};
 
 #[component]
 pub fn Sidebar(on_copilot_click: Callback<()>) -> impl IntoView {
@@ -17,7 +17,7 @@ pub fn Sidebar(on_copilot_click: Callback<()>) -> impl IntoView {
         <aside class="w-64 bg-neutral-900 text-white flex flex-col">
             <div class="p-4 border-b border-neutral-800">
                 <h1 class="text-xl font-bold flex items-center gap-2">
-                    <span class="text-2xl">🏠</span>
+                    <span class="text-2xl">W</span>
                     WizAI
                 </h1>
                 <p class="text-sm text-neutral-400">Agent Dashboard</p>

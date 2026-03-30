@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-leptos = { version = "0.6", features = ["csr", "tracing"] }
+leptos = { version = "0.6", features = ["csr"] }
 leptos_router = { version = "0.6", features = ["csr"] }
 wasm-bindgen = "0.2"
 serde = { version = "1.0", features = ["derive"] }
@@ -18,25 +18,19 @@ web-sys = { version = "0.3", features = [
     "Document",
     "Element",
     "HtmlElement",
+    "HtmlInputElement",
     "Node",
     "console",
     "WebSocket",
     "Url",
-    "Request",
-    "RequestInit",
-    "RequestMode",
-    "Headers",
-    "Body",
-    "Response",
-    "Performance",
-    "console::LogLevel",
+    "Blob",
+    "MouseEvent",
+    "DragEvent",
+    "DataTransfer",
 ] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-uuid = { version = "1.6", features = ["v4", "serde"] }
-chrono = { version = "0.4", features = ["serde"] }
-base64 = "0.21"
-futures = "0.3"
+uuid = { version = "1.6", features = ["v4", "serde", "js"] }
+chrono = { version = "0.4", features = ["serde", "wasmbind"] }
+console_error_panic_hook = "0.1"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

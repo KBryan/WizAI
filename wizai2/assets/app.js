@@ -68,6 +68,41 @@ class OpenSpecApp {
                 example: '/research durham region'
             },
             {
+                command: '/research:market',
+                description: 'Conduct market research with ResearchLead',
+                category: 'Research',
+                icon: '📊',
+                example: '/research:market analyze competitor landscape'
+            },
+            {
+                command: '/research:technical',
+                description: 'Technical research and feasibility study',
+                category: 'Research',
+                icon: '🔬',
+                example: '/research:technical evaluate new technology'
+            },
+            {
+                command: '/prd:create',
+                description: 'Create Product Requirements Document',
+                category: 'Research',
+                icon: '📄',
+                example: '/prd:create from research findings'
+            },
+            {
+                command: '/prd:submit',
+                description: 'Submit PRD for human approval',
+                category: 'Research',
+                icon: '✉️',
+                example: '/prd:submit PRD-001'
+            },
+            {
+                command: '/prd:handoff',
+                description: 'Hand off approved PRD to development',
+                category: 'Research',
+                icon: '🤝',
+                example: '/prd:handoff to software team'
+            },
+            {
                 command: '/opsx:propose',
                 description: 'Create a new change proposal',
                 category: 'OpenSpec',
@@ -912,6 +947,26 @@ class OpenSpecApp {
                     console.log(`[DEBUG] No handler for location: "${location}"`);
                     this.addMessage(`📍 Location "${args}" not yet supported.\n\nCurrently available:\n• Durham Region (Ontario)\n\nTry: /research durham region`, 'assistant');
                 }
+                break;
+            case '/research:market':
+                this.addMessage(`🔬 Initiating market research: ${args || 'general market analysis'}`, 'assistant');
+                await this.sendToAgent(`As ResearchLead, conduct market research on: ${args}`);
+                break;
+            case '/research:technical':
+                this.addMessage(`🔬 Initiating technical research: ${args || 'feasibility study'}`, 'assistant');
+                await this.sendToAgent(`As ResearchLead, conduct technical research on: ${args}`);
+                break;
+            case '/prd:create':
+                this.addMessage(`📄 Creating PRD: ${args || 'from research findings'}`, 'assistant');
+                await this.sendToAgent(`As ResearchLead, create a PRD for: ${args}`);
+                break;
+            case '/prd:submit':
+                this.addMessage(`📤 Submitting PRD for human approval: ${args || 'current PRD'}`, 'assistant');
+                await this.sendToAgent(`As ResearchLead, submit PRD ${args} for approval`);
+                break;
+            case '/prd:handoff':
+                this.addMessage(`🤝 Handing off to development: ${args || 'approved PRD'}`, 'assistant');
+                await this.sendToAgent(`As ResearchLead, hand off PRD to development: ${args}`);
                 break;
             case '/code':
                 if (!args) {

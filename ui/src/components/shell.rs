@@ -2,12 +2,12 @@ use crate::components::common::ToastContainer;
 use crate::components::copilot::CopilotPanel;
 use crate::components::header::Header;
 use crate::components::sidebar::Sidebar;
-use crate::state::ws::WebSocketProvider;
+use crate::state::ws::WebSocketState;
 use leptos::*;
 
 #[component]
 pub fn Shell(children: Children) -> impl IntoView {
-    provide(WebSocketProvider::new());
+    provide(WebSocketState::new());
 
     let (copilot_open, set_copilot_open) = create_signal(false);
     provide_context(|| CopilotOpen(create_signal(false)));

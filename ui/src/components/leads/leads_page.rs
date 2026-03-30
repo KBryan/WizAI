@@ -1,6 +1,8 @@
 use leptos::*;
 use crate::api::leads::{self, LeadSummary, UpdateLeadRequest};
 use crate::components::common::show_toast;
+use crate::components::leads::stats::StatsBar;
+use crate::components::leads::modal::LeadModal;
 
 #[component]
 pub fn LeadsPage() -> impl IntoView {
@@ -259,7 +261,6 @@ fn DraggableLeadCard(lead: LeadData, on_click: Callback<()>) -> impl IntoView {
         e.data_transfer()
             .and_then(|dt| {
                 let _ = dt.set_data(&lead.id);
-                dt.set_effect_allowed(web_sys::DragEffect::Move);
             });
         set_is_dragging.set(true);
     };
