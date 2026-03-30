@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Research API Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        
+        .api-status {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        .card h2 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2 .icon {
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result h4 {
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .result pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .error {
+            border-left-color: #ef4444;
+        }
+        
+        .error pre {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-box .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-box .label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .comparable-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .comparable-item .address {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        
+        .comparable-item .details {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        
+        .confidence-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .confidence-high {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .confidence-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Dashboard</a>
+        
+        <h1>🏠 Market Research API</h1>
+        <p class="subtitle">Test the new Market Research endpoints with live or mock data</p>
+        
+        <div class="api-status">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span id="server-status">Checking server...</span>
+            </div>
+            <div>
+                <small id="data-source">Data Source: Detecting...</small>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <!-- CMA Card -->
+            <div class="card">
+                <h2><span class="icon">📊</span> Generate CMA</h2>
+                <p style="color: #6b7280; margin-bottom: 20px;">Create a Comparative Market Analysis report</p>
+                
+                <div class="form-group">
+                    <label>Property Address</label>
+                    <input type="text" id="cma-address" placeholder="123 Main St, Pickering" value="123 Main St, Pickering">
+                </div>
+                
+                <div class="form-group">
+                    <label>Property Type</label>
+                    <select id="cma-property-type">
+                        <option value="Detached">Detached</option>
+                        <option value="SemiDetached">Semi-Detached</option>
+                        <option value="Townhouse">Townhouse</option>
+                        <option value="Condo">Condo</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Bedrooms</label>
+                    <input type="number" id="cma-bedrooms" placeholder="3" value="3">
+                </div>
+                
+                <div class="form-group">
+                    <label>Square Feet</label>
+                    <input type="number" id="cma-sqft" placeholder="1500" value="1500">
+                </div>
+                
+                <button class="btn" onclick="generateCMA()" id="cma-btn">
+                    Generate CMA
+                </button>
+                
+                <div class="result" id="cma-result"></div>
+            </div>
+            
+            <!-- Comparables Card -->
+            <div class="card">
+                <h2><span class="icon">🏘️</span> Find Comparables</h2>
+                <p style="color: #6b7280; margin-bottom: 20px;">Search for similar sold properties</p>
+                
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="comp-address" placeholder="123 Main St, Pickering" value="123 Main St, Pickering">
+                </div>
+                
+                <div class="form-group">
+                    <label>Search Radius (km)</label>
+                    <input type="number" id="comp-radius" placeholder="2" value="2" min="0.1" max="10" step="0.1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Max Results</label>
+                    <select id="comp-limit">
+                        <option value="3">3</option>
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="findComparables()" id="comp-btn">
+                    Find Comparables
+                </button>
+                
+                <div class="result" id="comp-result"></div>
+            </div>
+            
+            <!-- Market Trends Card -->
+            <div class="card">
+                <h2><span class="icon">📈</span> Market Trends</h2>
+                <p style="color: #6b7280; margin-bottom: 20px;">Get market statistics for Durham Region</p>
+                
+                <div class="form-group">
+                    <label>Area</label>
+                    <select id="trends-area">
+                        <option value="pickering">Pickering</option>
+                        <option value="ajax">Ajax</option>
+                        <option value="whitby">Whitby</option>
+                        <option value="oshawa">Oshawa</option>
+                        <option value="durham-region">Durham Region (All)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Time Period</label>
+                    <select id="trends-period">
+                        <option value="30d">Last 30 Days</option>
+                        <option value="90d" selected>Last 90 Days</option>
+                        <option value="1y">Last Year</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="getMarketTrends()" id="trends-btn">
+                    Get Trends
+                </button>
+                
+                <div class="result" id="trends-result"></div>
+            </div>
+            
+            <!-- Supported Areas Card -->
+            <div class="card">
+                <h2><span class="icon">🗺️</span> Supported Areas</h2>
+                <p style="color: #6b7280; margin-bottom: 20px;">View all available Durham Region areas</p>
+                
+                <button class="btn" onclick="getSupportedAreas()" id="areas-btn">
+                    Load Areas
+                </button>
+                
+                <div class="result" id="areas-result"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // API Base URL
+        const API_BASE = '/api/market-research';
+        
+        // Check server status on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkServerStatus();
+        });
+        
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/areas`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('server-status').textContent = 'Server Online';
+                    document.getElementById('data-source').textContent = 'Data Source: Ready (Live or Mock)';
+                } else {
+                    document.getElementById('server-status').textContent = 'Server Error';
+                    document.querySelector('.status-dot').style.background = '#ef4444';
+                }
+            } catch (error) {
+                document.getElementById('server-status').textContent = 'Server Offline';
+                document.querySelector('.status-dot').style.background = '#ef4444';
+            }
+        }
+        
+        // Utility: Show loading state
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (loading) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="loading"></span> Loading...';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.getAttribute('data-original-text') || btn.textContent;
+            }
+        }
+        
+        // Utility: Display result
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.className = 'result show' + (isError ? ' error' : '');
+            element.innerHTML = `<h4>${isError ? '❌ Error' : '✅ Result'}</h4><pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+        
+        // Generate CMA
+        async function generateCMA() {
+            const btn = document.getElementById('cma-btn');
+            btn.setAttribute('data-original-text', btn.textContent);
+            setLoading('cma-btn', true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/cma`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        address: document.getElementById('cma-address').value,
+                        property_type: document.getElementById('cma-property-type').value,
+                        bedrooms: parseInt(document.getElementById('cma-bedrooms').value) || null,
+                        square_feet: parseInt(document.getElementById('cma-sqft').value) || null
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('cma-result', {
+                        message: 'CMA Created Successfully!',
+                        cma_id: result.data.cma_id,
+                        status: result.data.status,
+                        estimated_completion: result.data.estimated_completion,
+                        note: 'Use the CMA ID to check status and retrieve the full report'
+                    });
+                } else {
+                    showResult('cma-result', result.error, true);
+                }
+            } catch (error) {
+                showResult('cma-result', { message: error.message }, true);
+            } finally {
+                setLoading('cma-btn', false);
+            }
+        }
+        
+        // Find Comparables
+        async function findComparables() {
+            const btn = document.getElementById('comp-btn');
+            btn.setAttribute('data-original-text', btn.textContent);
+            setLoading('comp-btn', true);
+            
+            try {
+                const address = encodeURIComponent(document.getElementById('comp-address').value);
+                const radius = document.getElementById('comp-radius').value;
+                const limit = document.getElementById('comp-limit').value;
+                
+                const response = await fetch(`${API_BASE}/comparables?address=${address}&radius=${radius}&limit=${limit}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Format the comparables nicely
+                    const comparables = result.data.comparables.map(comp => ({
+                        address: comp.address,
+                        mls: comp.mls_number,
+                        price: `$${comp.price.toLocaleString()}`,
+                        type: comp.property_type,
+                        specs: `${comp.bedrooms}bd/${comp.bathrooms}ba, ${comp.square_feet}sqft`,
+                        dom: `${comp.days_on_market} days on market`,
+                        confidence: `${comp.match_confidence}% match`
+                    }));
+                    
+                    showResult('comp-result', {
+                        target: result.data.target_property.address,
+                        found: `${result.data.count} comparables`,
+                        comparables: comparables
+                    });
+                } else {
+                    showResult('comp-result', result.error, true);
+                }
+            } catch (error) {
+                showResult('comp-result', { message: error.message }, true);
+            } finally {
+                setLoading('comp-btn', false);
+            }
+        }
+        
+        // Get Market Trends
+        async function getMarketTrends() {
+            const btn = document.getElementById('trends-btn');
+            btn.setAttribute('data-original-text', btn.textContent);
+            setLoading('trends-btn', true);
+            
+            try {
+                const area = document.getElementById('trends-area').value;
+                const period = document.getElementById('trends-period').value;
+                
+                const response = await fetch(`${API_BASE}/trends/${area}?period=${period}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('trends-result', {
+                        area: result.data.area,
+                        period: result.data.period,
+                        prices: {
+                            average: result.data.average_price,
+                            median: result.data.median_price,
+                            per_sqft: result.data.price_per_sqft
+                        },
+                        market: {
+                            status: result.data.market_status,
+                            trend: result.data.price_trend_direction,
+                            days_on_market: result.data.median_days_on_market,
+                            inventory: result.data.inventory_level,
+                            sales_volume: result.data.sales_volume
+                        },
+                        neighborhoods: result.data.neighborhoods
+                    });
+                } else {
+                    showResult('trends-result', result.error, true);
+                }
+            } catch (error) {
+                showResult('trends-result', { message: error.message }, true);
+            } finally {
+                setLoading('trends-btn', false);
+            }
+        }
+        
+        // Get Supported Areas
+        async function getSupportedAreas() {
+            const btn = document.getElementById('areas-btn');
+            btn.setAttribute('data-original-text', btn.textContent);
+            setLoading('areas-btn', true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/areas`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('areas-result', {
+                        message: result.data.message,
+                        total_areas: result.data.areas.length,
+                        areas: result.data.areas
+                    });
+                } else {
+                    showResult('areas-result', result.error, true);
+                }
+            } catch (error) {
+                showResult('areas-result', { message: error.message }, true);
+            } finally {
+                setLoading('areas-btn', false);
+            }
+        }
+    </script>
+</body>
+</html>

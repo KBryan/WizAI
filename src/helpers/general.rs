@@ -1,17 +1,14 @@
-use crate::apis::call_request::call_gpt;
+use crate::apis::call_request::call_llm;
 use crate::helpers::command_line::PrintCommand;
 use crate::models::general::llm::MessageAI;
 use reqwest::Client;
 use serde::de::DeserializeOwned;
 use std::fs;
 
-pub const CODE_TEMPLATE_PATH: &str =
-    "/Users/kwamebryan/RustroverProjects/DAppWiz/server-template/src/code_template.rs";
-
-pub const WEB_SERVER_PROJECT_PATH: &str = "/Users/kwamebryan/RustroverProjects/DAppWiz/server-template/";
-pub const EXEC_MAIN_PATH: &str =
-    "/Users/kwamebryan/RustroverProjects/DAppWiz/server-template/src/main.rs";
-pub const API_SCHEMA_PATH: &str = "/Users/kwamebryan/RustroverProjects/DAppWiz/schemas/api_schema.json";
+pub const CODE_TEMPLATE_PATH: &str = "server-template/src/code_template.rs";
+pub const WEB_SERVER_PROJECT_PATH: &str = "server-template/";
+pub const EXEC_MAIN_PATH: &str = "server-template/src/main.rs";
+pub const API_SCHEMA_PATH: &str = "schemas/api_schema.json";
 
 // Extend ai function to encourage specific output
 pub fn extend_ai_function(ai_func: fn(&str) -> &'static str, func_input: &str) -> MessageAI {
@@ -33,7 +30,7 @@ pub fn extend_ai_function(ai_func: fn(&str) -> &'static str, func_input: &str) -
     }
 }
 
-// Performs call to LLM GPT
+// Performs call to LLM (Venice AI)
 pub async fn ai_task_request(
     msg_context: String,
     agent_position: &str,
@@ -48,18 +45,18 @@ pub async fn ai_task_request(
 
     // Get LLM response
     let llm_response_res: Result<String, Box<dyn std::error::Error + Send>> =
-        call_gpt(vec![extended_msg.clone()]).await;
+        call_llm(vec![extended_msg.clone()]).await;
 
     // Return Success or try again
     match llm_response_res {
         Ok(llm_resp) => llm_resp,
-        Err(_) => call_gpt(vec![extended_msg.clone()])
+        Err(_) => call_llm(vec![extended_msg.clone()])
             .await
-            .expect("Failed twice to call OpenAI"),
+            .expect("Failed twice to call Venice AI"),
     }
 }
 
-// Performs call to LLM GPT - Decoded
+// Performs call to LLM (Venice AI) - Decoded
 pub async fn ai_task_request_decoded<T: DeserializeOwned>(
     msg_context: String,
     agent_position: &str,
@@ -94,7 +91,13 @@ pub fn read_exec_main_contents() -> String {
 // Save New Backend Code
 pub fn save_backend_code(contents: &String) {
     let path: String = String::from(EXEC_MAIN_PATH);
-    fs::write(path, contents).expect("Failed to write main.rs file");
+    // Strip markdown code fences if present
+    let cleaned = contents
+        .trim_start_matches("```rust")
+        .trim_start_matches("```")
+        .trim_end_matches("```")
+        .trim();
+    fs::write(path, cleaned).expect("Failed to write main.rs file");
 }
 
 // Save JSON API Endpoint Schema
@@ -117,6 +120,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "Requires Venice AI API key"]
     async fn tests_ai_task_request() {
         let ai_func_param: String =
             "Build me a webserver for making stock price api requests.".to_string();

@@ -1,0 +1,70 @@
+# MCP Configuration for Spree
+# Real Estate Research Organization
+
+mcp:
+  enabled: true
+  
+  # Repliers MCP Server - Real Estate Data
+  servers:
+    repliers:
+      type: stdio
+      command: node
+      args:
+        - "/Users/kwamebryan/Documents/GitHub/WizAI/repliers-mcp-server/mcpServer.js"
+      env:
+        REPLIERS_API_KEY: "${REPLIERS_API_KEY}"
+        NODE_ENV: "production"
+      auto_connect: true
+      
+      # Cost tracking per API call
+      cost_tracking:
+        enabled: true
+        cost_per_call: 0.01  # $0.01 per Repliers API call
+  
+  # Security settings
+  security:
+    # Require approval for these operations
+    require_approval:
+      - "repliers.create_listing"
+      - "repliers.update_listing"
+      - "repliers.delete_listing"
+    
+    # Rate limits (calls per minute)
+    rate_limits:
+      repliers: 60  # 60 calls per minute
+  
+  # Tool registration settings
+  tool_registration:
+    prefix: true  # Prefix tools with server name (repliers.tool_name)
+    
+  # Future MCP servers can be added here:
+  # zillow:
+  #   type: stdio
+  #   command: node
+  #   args: ["/path/to/zillow-mcp-server/index.js"]
+  #   env:
+  #     ZILLOW_API_KEY: "${ZILLOW_API_KEY}"
+  #
+  # google-maps:
+  #   type: sse
+  #   url: "https://mcp.google.com/maps/sse"
+  #   api_key: "${GOOGLE_MAPS_API_KEY}"
+
+# Research defaults
+research:
+  default_location: "Durham Region, ON"
+  default_property_types:
+    - "Detached"
+    - "Townhouse"
+    - "Condo"
+  
+  # Output settings
+  output:
+    format: "markdown"  # markdown, json, or html
+    include_images: true
+    save_path: "research_output/durham"
+  
+  # Cost settings
+  costs:
+    report_base_price: 300  # Base price per report in USD
+    api_cost_markup: 2.0    # 2x markup on API costs

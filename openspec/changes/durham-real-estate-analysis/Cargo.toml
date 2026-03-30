@@ -1,0 +1,31 @@
+[package]
+name = "durham-realestate-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web scraping
+reqwest = { version = "0.11", features = ["json", "cookies"] }
+scraper = "0.17"
+tokio = { version = "1.35", features = ["full"] }
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite", "migrate"] }
+
+# CLI
+clap = { version = "4.4", features = ["derive"] }
+
+# Data processing
+polars = { version = "0.35", features = ["describe", "ndarray"] }
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2.4"
+
+# Visualization
+plotters = "0.3"
