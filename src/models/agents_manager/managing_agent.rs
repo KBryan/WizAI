@@ -76,6 +76,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "Requires Venice AI API key"]
     async fn tests_managing_agent() {
         let usr_request: &str = "need a full stack app that fetches and tracks my fitness progress. Needs to include timezone info from the web.";
 

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #1a1a2e; color: white; }
+        button { padding: 10px 20px; margin: 10px; cursor: pointer; font-size: 16px; }
+        #output { background: #16213e; padding: 20px; margin-top: 20px; white-space: pre-wrap; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>API Test Page</h1>
+    
+    <button id="test-status">Test Status API</button>
+    <button id="test-fetch">Test Fetch Data</button>
+    <button id="test-click">Test Click</button>
+    
+    <div id="output">Click a button to test...</div>
+
+    <script>
+        console.log('Script loaded');
+        
+        document.getElementById('test-click').addEventListener('click', function() {
+            console.log('Click works!');
+            document.getElementById('output').textContent = 'Click works! ' + new Date().toISOString();
+        });
+        
+        document.getElementById('test-status').addEventListener('click', async function() {
+            console.log('Testing status API...');
+            document.getElementById('output').textContent = 'Loading...';
+            
+            try {
+                const response = await fetch('/api/realestate/status');
+                const data = await response.json();
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+                console.log('Status result:', data);
+            } catch (error) {
+                document.getElementById('output').textContent = 'Error: ' + error.message;
+                console.error('Error:', error);
+            }
+        });
+        
+        document.getElementById('test-fetch').addEventListener('click', async function() {
+            console.log('Testing fetch API...');
+            document.getElementById('output').textContent = 'Loading...';
+            
+            try {
+                const response = await fetch('/api/realestate/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        command: 'stats',
+                        parameters: { days: 30 }
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+                console.log('Fetch result:', data);
+            } catch (error) {
+                document.getElementById('output').textContent = 'Error: ' + error.message;
+                console.error('Error:', error);
+            }
+        });
+        
+        console.log('Event listeners attached');
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Analysis Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="dashboard-app">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1>Market Analysis Dashboard</h1>
+                <span class="region-badge">Durham Region</span>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-primary" id="fetch-data-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Fetch Data
+                </button>
+                <button class="btn btn-secondary" id="export-btn">
+                    Export Report
+                </button>
+                <select class="region-selector" id="region-selector">
+                    <option value="durham">Durham Region</option>
+                    <option value="toronto">Toronto</option>
+                    <option value="peel">Peel Region</option>
+                    <option value="york">York Region</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Average Price</span>
+                    <span class="stat-trend up">+5.2%</span>
+                </div>
+                <div class="stat-value" id="avg-price">$850,000</div>
+                <div class="stat-subtitle">Last 30 days</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Active Listings</span>
+                    <span class="stat-trend down">-12%</span>
+                </div>
+                <div class="stat-value" id="active-listings">1,247</div>
+                <div class="stat-subtitle">Currently on market</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Days on Market</span>
+                    <span class="stat-trend up">+2 days</span>
+                </div>
+                <div class="stat-value" id="days-market">12.5</div>
+                <div class="stat-subtitle">Average</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Price/SqFt</span>
+                    <span class="stat-trend up">+3.1%</span>
+                </div>
+                <div class="stat-value" id="price-sqft">$550</div>
+                <div class="stat-subtitle">Average</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <div class="chart-card large">
+                <div class="chart-header">
+                    <h3>Price Trends</h3>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" data-period="6m">6M</button>
+                        <button class="chart-btn" data-period="1y">1Y</button>
+                        <button class="chart-btn" data-period="2y">2Y</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="price-trends-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Municipality Comparison</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="municipality-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Property Type Distribution</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="property-type-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Inventory Trends</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="inventory-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="data-section">
+            <div class="section-header">
+                <h3>Recent Sales</h3>
+                <div class="table-controls">
+                    <input type="text" class="search-input" placeholder="Search by municipality..." id="table-search">
+                    <select class="filter-select" id="property-filter">
+                        <option value="">All Types</option>
+                        <option value="detached">Detached</option>
+                        <option value="semi">Semi-Detached</option>
+                        <option value="townhouse">Townhouse</option>
+                        <option value="condo">Condo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="data-table" id="sales-table">
+                    <thead>
+                        <tr>
+                            <th>Address</th>
+                            <th>Municipality</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                            <th>Date</th>
+                            <th>Days on Market</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sales-table-body">
+                        <!-- Data populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Analyzing market data...</p>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toast-container"></div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

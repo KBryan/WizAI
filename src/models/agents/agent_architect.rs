@@ -157,6 +157,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "Requires Venice AI API key"]
     async fn tests_solution_architect() {
         let mut agent: AgentSolutionArchitect = AgentSolutionArchitect::new();
 

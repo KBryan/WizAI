@@ -322,6 +322,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "Requires Venice AI API key and code template file"]
     async fn tests_backend_developer() {
         let mut agent: AgentBackendDeveloper = AgentBackendDeveloper::new();
 
